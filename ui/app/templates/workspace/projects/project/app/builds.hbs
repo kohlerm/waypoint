@@ -1,8 +1,6 @@
 {{page-title (concat @model.application.application "Builds")}}
 
-<h2 class="list-heading">{{t "page.builds.title"}}</h2>
-
-<ul data-test-build-list class="list">
+<ul data-test-build-list class="sidebar list">
   {{#each @model key="id" as |build|}}
     <AppItem::Build @build={{build}} />
   {{else}}
@@ -17,4 +15,6 @@
   {{/each}}
 </ul>
 
-{{outlet}}
+<div class="panel">
+  {{outlet}}
+</div>

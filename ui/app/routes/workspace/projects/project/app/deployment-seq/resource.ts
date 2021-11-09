@@ -1,6 +1,6 @@
 import Route from '@ember/routing/route';
 import { StatusReport } from 'waypoint-pb';
-import { Model as DeploymentRouteModel } from '../deployment';
+import { Model as DeploymentRouteModel } from '../deployment-seq';
 import { Breadcrumb } from 'waypoint/services/breadcrumbs';
 import { action } from '@ember/object';
 

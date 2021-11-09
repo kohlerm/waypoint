@@ -51,13 +51,21 @@ aside {
   padding-top: scale.$lg-6;
 }
 
+.grid {
+  display: grid;
+  grid-gap: 2vw;
+  grid-template-columns: 20vw 73vw;
+  grid-template-areas: 'menu panel';
+}
+
 ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-ul.list {
+ul.sidebar {
+  grid-area: menu;
   li {
     padding-bottom: scale.$base;
     border-top: 1rem solid transparent;
@@ -68,6 +76,10 @@ ul.list {
       border-bottom: none;
     }
   }
+}
+
+.panel {
+  grid-area: panel;
 }
 
 :any-link:not(.pds-button) {

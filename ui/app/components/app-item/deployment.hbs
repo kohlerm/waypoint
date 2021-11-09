@@ -3,7 +3,7 @@
   {{if (not-eq @deployment.sequence @latest.sequence) "app-item--previous"}}
   {{if (eq @deployment.state 4) "app-item--destroyed"}}"
 >
-  <LinkTo @route="workspace.projects.project.app.deployment" @models={{array @deployment.sequence}}>
+  <LinkTo @route="workspace.projects.project.app.deployment.deployment-seq" @models={{array @deployment.sequence}}>
     <p>
       <b class="badge badge--version">v{{@deployment.sequence}}</b>
     </p>
@@ -16,21 +16,9 @@
       </b>
     {{/if}}
   </LinkTo>
-  {{#if (and (not-eq @deployment.state 4) @deployment.statusReport)}}
-    <small>
-      <StatusReportIndicator @statusReport={{@deployment.statusReport}} />
-    </small>
-  {{/if}}
   {{#if (not-eq @latest.id @deployment.id)}}
   <small class="replacement-info">
     {{t "page.deployments.replaced_label"}}<b class="badge badge--version">v{{@latest.sequence}}</b>
   </small>
-  {{else if (and @deployment.preload.deployUrl (not-eq @deployment.state 4))}}
-    <ExternalLink data-test-external-deployment-button
-      href={{enforce-protocol @deployment.preload.deployUrl}}
-      class="button button--secondary button--external-link">
-      <span>{{@deployment.preload.deployUrl}}</span>
-      <Pds::Icon @type="exit" class="icon" />
-    </ExternalLink>
   {{/if}}
 </li>
