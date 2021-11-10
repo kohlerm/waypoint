@@ -82,7 +82,7 @@ func TestServer(t testing.T, impl pb.WaypointServer, opts ...TestOption) pb.Wayp
 	}
 
 	// Get our version info we'll set on the client
-	vsnInfo := testVersionInfoResponse().Info
+	vsnInfo := TestVersionInfoResponse().Info
 
 	// connect is a function since we need to connect multiple times:
 	// once to bootstrap, then again with our auth information.
@@ -144,7 +144,8 @@ func TestWithRestart(ch <-chan struct{}) TestOption {
 	}
 }
 
-func testVersionInfoResponse() *pb.GetVersionInfoResponse {
+// TODO(izaak): comment
+func TestVersionInfoResponse() *pb.GetVersionInfoResponse {
 	return &pb.GetVersionInfoResponse{
 		Info: &pb.VersionInfo{
 			Api: &pb.VersionInfo_ProtocolVersion{

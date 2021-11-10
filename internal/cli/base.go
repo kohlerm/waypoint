@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes/empty"
+
 	"github.com/adrg/xdg"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-multierror"
@@ -123,6 +125,9 @@ type baseCommand struct {
 
 	// The home directory that we loaded the waypoint config from
 	homeConfigPath string
+
+	// Will this require a runner
+	willRequireRunner bool
 }
 
 // Close cleans up any resources that the command created. This should be
@@ -232,6 +237,8 @@ func (c *baseCommand) Init(opts ...Option) error {
 	// Parse the configuration
 	c.cfg = &config.Config{}
 
+	// IZAAK: begin the bad part
+
 	// If we have an app target requirement, we have to get it from the args
 	// or the config.
 	if baseCfg.AppTargetRequired {
@@ -250,7 +257,7 @@ func (c *baseCommand) Init(opts ...Option) error {
 				c.args = c.args[1:]
 
 				// Explicitly set remote
-				c.flagRemote = true
+				c.willRequireRunner = true
 			}
 		}
 
@@ -278,7 +285,7 @@ func (c *baseCommand) Init(opts ...Option) error {
 				c.args = c.args[1:]
 
 				// Explicitly set remote
-				c.flagRemote = true
+				c.willRequireRunner = true
 
 				// the below should only be used for commands that don't accept
 				// other arguments
@@ -293,7 +300,7 @@ func (c *baseCommand) Init(opts ...Option) error {
 				c.args = c.args[1:]
 
 				// Explicitly set remote
-				c.flagRemote = true
+				c.willRequireRunner = true
 			}
 		}
 
@@ -341,6 +348,8 @@ func (c *baseCommand) Init(opts ...Option) error {
 			}
 		}
 	}
+
+	// IZAAK: End the bad part
 
 	// Collect variable values from -var and -varfile flags,
 	// and env vars set with WP_VAR_* and set them on the job
@@ -397,6 +406,75 @@ func (c *baseCommand) Init(opts ...Option) error {
 	return nil
 }
 
+func remoteIsPossible(ctx context.Context, client pb.WaypointClient, project *pb.Project, log hclog.Logger) (bool, error) {
+	// Check if remote is disabled in the waypoint.hcl
+	if !project.RemoteEnabled {
+		log.Debug("Remote operations are disabled in waypoint.hcl - operation will occur locally")
+		return false, nil
+	}
+
+	if project.DataSource == nil {
+		log.Debug("Project has no datasource configured - operation cannot occur remotely")
+		// This is probably going to be fatal somewhere downstream
+		return false, nil
+	}
+
+	var hasRemoteDataSource bool
+	switch project.DataSource.GetSource().(type) {
+	case *pb.Job_DataSource_Git:
+		// TODO(izaak): can the git data source have an empty url? What happens then?
+		hasRemoteDataSource = true
+	default:
+		hasRemoteDataSource = false
+	}
+
+	if !hasRemoteDataSource {
+		log.Debug("Project does not have a remote data source - operation cannot occur remotely")
+		return false, nil
+	}
+
+	// We know the project can handle remote ops at this point - but do we have runners?
+
+	// TODO(izaak) Check that we have a remote runner up
+
+	// Check to see if we have a runner profile assigned to this project
+
+	if project.OndemandRunner != nil {
+		// TODO(izaak): what happens if this ODR profile has been deleted from the profile list?
+		// It should error somewhere downstream.
+		log.Debug("Project has an explicit ODR profile set - operation will happen remotely")
+		return true, nil
+	}
+
+	// Check to see if we have a global default ODR profile
+
+	// TODO: it would be more efficient if we had an arg to filter to just get default profiles.
+	configsResp, err := client.ListOnDemandRunnerConfigs(ctx, &empty.Empty{})
+	if err != nil {
+		return false, err
+	}
+
+	defaultRunnerProfileExists := false
+	for _, odrConfig := range configsResp.Configs {
+		if odrConfig.Default {
+			defaultRunnerProfileExists = true
+			break
+		}
+	}
+
+	if defaultRunnerProfileExists {
+		log.Debug("Default runner profile exists - operation will happen remotely.")
+		return true, nil
+	}
+
+	log.Debug("No runner profile is set for this project and no global default exists - operation should happen locally")
+	// The operation here _could_ still happen remotely - executed on the remote runner itself without ODR.
+	// If it's a container build op it will probably fail (because no kaniko), and if it's a deploy/release op it
+	// very well might fail do to incorrect/insufficient permissions. Because it probably won't work, we won't try,
+	// but the user could force it to happen locally by setting -local=false.
+	return false, nil
+}
+
 // DoApp calls the callback for each app. This lets you execute logic
 // in an app-specific context safely. This automatically handles any
 // parallelization, waiting, and error handling. Your code should be
@@ -426,6 +504,12 @@ func (c *baseCommand) DoApp(ctx context.Context, f func(context.Context, *client
 			return ErrSentinel
 		}
 		project := resp.Project
+
+		// Decide if the op can happen remotely
+		if project.RemoteEnabled {
+
+		}
+		// Check if VCS is configured on our project
 
 		for _, a := range project.Applications {
 			appTargets = append(appTargets, a.Name)

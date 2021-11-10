@@ -1,8 +1,16 @@
 package cli
 
 import (
+	"context"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/waypoint/internal/server"
+	pbmocks "github.com/hashicorp/waypoint/internal/server/gen/mocks"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/hashicorp/go-hclog"
+	pb "github.com/hashicorp/waypoint/internal/server/gen"
 
 	"github.com/stretchr/testify/require"
 
@@ -198,6 +206,129 @@ func TestWorkspacePrecedence(t *testing.T) {
 
 			// reset the env after every test
 			os.Unsetenv(defaultWorkspaceEnvName)
+		})
+	}
+}
+
+func Test_remoteIsPossible(t *testing.T) {
+	log := hclog.Default()
+
+	type args struct {
+		project           *pb.Project
+		runnerConfigsResp *pb.ListOnDemandRunnerConfigsResponse
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "Choose local if remote enabled is false for the project.",
+			args: args{
+				project: &pb.Project{
+					RemoteEnabled: false,
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
+
+		{
+			name: "Choose local if the datasource is not remote-capable",
+			args: args{
+				project: &pb.Project{
+					RemoteEnabled: true,
+					DataSource: &pb.Job_DataSource{
+						Source: &pb.Job_DataSource_Local{},
+					},
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
+
+		{
+			name: "Choose remote if the datasource is good and a runner profile is set",
+			args: args{
+				project: &pb.Project{
+					RemoteEnabled: true,
+					DataSource: &pb.Job_DataSource{
+						Source: &pb.Job_DataSource_Git{},
+					},
+					OndemandRunner: &pb.Ref_OnDemandRunnerConfig{},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+
+		{
+			name: "Choose local if no runner profile is set for the project, and there is no default",
+			args: args{
+				project: &pb.Project{
+					RemoteEnabled: true,
+					DataSource: &pb.Job_DataSource{
+						Source: &pb.Job_DataSource_Git{},
+					},
+					OndemandRunner: nil,
+				},
+				runnerConfigsResp: &pb.ListOnDemandRunnerConfigsResponse{
+					Configs: []*pb.OnDemandRunnerConfig{{
+						Default: false,
+					}},
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
+
+		// TODO(izaak): do we need a test with a git datasource with no url set?
+		{
+			name: "Choose remote if the project is good and the default runner is set",
+			args: args{
+				project: &pb.Project{
+					RemoteEnabled: true,
+					DataSource: &pb.Job_DataSource{
+						Source: &pb.Job_DataSource_Git{},
+					},
+					OndemandRunner: nil,
+				},
+				runnerConfigsResp: &pb.ListOnDemandRunnerConfigsResponse{
+					Configs: []*pb.OnDemandRunnerConfig{{
+						Default: true,
+					}},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+
+			var client pb.WaypointClient
+			if tt.args.runnerConfigsResp != nil {
+				m := &pbmocks.WaypointServer{}
+				// Called when initializing the client
+				m.On("BootstrapToken", mock.Anything, mock.Anything).Return(&pb.NewTokenResponse{Token: "hello"}, nil)
+				m.On("GetVersionInfo", mock.Anything, mock.Anything).Return(server.TestVersionInfoResponse(), nil)
+
+				m.On("ListOnDemandRunnerConfigs", mock.Anything, mock.Anything).Return(tt.args.runnerConfigsResp, nil)
+				client = server.TestServer(t, m, server.TestWithContext(ctx))
+			}
+
+			got, err := remoteIsPossible(ctx, client, tt.args.project, log)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("remoteIsPossible() error = %v, wantErr %v", err, tt.wantErr)
+				cancel()
+				return
+			}
+			if got != tt.want {
+				t.Errorf("remoteIsPossible() got = %v, want %v", got, tt.want)
+			}
+			cancel()
 		})
 	}
 }
