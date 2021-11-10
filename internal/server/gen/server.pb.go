@@ -1430,10 +1430,16 @@ type Project struct {
 	// The applications cannot be modified in any Project APIs. You must
 	// use the dedicated Application APIs.
 	Applications []*Application `protobuf:"bytes,2,rep,name=applications,proto3" json:"applications,omitempty"`
+
 	// If true, then the `-remote` flag or the `waypoint build project/app`
 	// syntax can be used with a remote runner. If this is false, then
 	// this is not allowed. This is typically configured using the
 	// `runner {}` block in the waypoint config.
+
+	// TODO(izaak): change this to local for the CLI. Think about implications for
+	// for the hcl - users should probably still be able to disable remote ops there,
+	// (or force remote ops?), and it would be nice if the syntax wasn't backwards-compat
+	// breaking
 	RemoteEnabled bool `protobuf:"varint,3,opt,name=remote_enabled,json=remoteEnabled,proto3" json:"remote_enabled,omitempty"`
 	// Where data is sourced for remote operations. If this isn't set, then
 	// there is no default data source and it will be an error if a job is

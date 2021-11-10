@@ -409,6 +409,7 @@ func (c *baseCommand) Init(opts ...Option) error {
 
 func remoteIsPossible(ctx context.Context, client pb.WaypointClient, project *pb.Project, log hclog.Logger) (bool, error) {
 	// Check if remote is disabled in the waypoint.hcl
+
 	if !project.RemoteEnabled {
 		log.Debug("Remote operations are disabled in waypoint.hcl - operation will occur locally")
 		return false, nil
@@ -506,20 +507,18 @@ func (c *baseCommand) DoApp(ctx context.Context, f func(context.Context, *client
 		}
 		project := resp.Project
 
-		// Decide if the op can happen remotely
-		if project.RemoteEnabled {
-			// Check if VCS is configured on our project
-			remote, err := remoteIsPossible(ctx, client, project, c.Log)
-			if err != nil {
-				c.ui.Output(clierrors.Humanize(err), terminal.WithErrorStyle())
-				return ErrSentinel
-			}
-			c.project.LocalRunner = !remote
-			if remote {
-				c.ui.Output("Using remote runner")
-			} else {
-				c.ui.Output("Using local runner")
-			}
+		// TODO: look at the remote/local flag
+		// Check if VCS is configured on our project
+		remote, err := remoteIsPossible(ctx, client, project, c.Log)
+		if err != nil {
+			c.ui.Output(clierrors.Humanize(err), terminal.WithErrorStyle())
+			return ErrSentinel
+		}
+		c.project.LocalRunner = !remote
+		if remote {
+			c.ui.Output("Using remote runner")
+		} else {
+			c.ui.Output("Using local runner")
 		}
 
 		for _, a := range project.Applications {

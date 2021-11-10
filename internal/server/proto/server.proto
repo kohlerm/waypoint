@@ -573,6 +573,8 @@ message Project {
   // use the dedicated Application APIs.
   repeated Application applications = 2;
 
+
+  // TODO(izaak): How does this play into the broader picture? It should default to true, at least?
   // If true, then the `-remote` flag or the `waypoint build project/app`
   // syntax can be used with a remote runner. If this is false, then
   // this is not allowed. This is typically configured using the
