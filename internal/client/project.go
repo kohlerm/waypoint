@@ -30,7 +30,9 @@ type Project struct {
 	cleanupFunc         func()
 	serverVersion       *pb.VersionInfo
 
-	local bool
+	// Indicates whether the client will spin up a per-operation runner locally
+	// and reference the LocalRunner on-disk data for all operations.
+	LocalRunner bool
 
 	localServer bool // True when a local server is created
 
@@ -89,7 +91,7 @@ func New(ctx context.Context, opts ...Option) (*Project, error) {
 		client.workspace = &pb.Ref_Workspace{Workspace: "default"}
 	}
 
-	if client.local {
+	if client.LocalRunner {
 		client.logger.Debug("starting runner to process local jobs")
 		r, err := client.startRunner()
 		if err != nil {
@@ -257,7 +259,7 @@ func WithSourceOverrides(m map[string]string) Option {
 // data for all operations.
 func WithLocal() Option {
 	return func(c *Project, cfg *config) error {
-		c.local = true
+		c.LocalRunner = true
 		return nil
 	}
 }

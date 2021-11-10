@@ -365,6 +365,7 @@ func (c *baseCommand) Init(opts ...Option) error {
 	// Create our client
 	if baseCfg.Client {
 		c.project, err = c.initClient(nil)
+
 		if err != nil {
 			c.logError(c.Log, "failed to create client", err)
 			return err
@@ -507,9 +508,19 @@ func (c *baseCommand) DoApp(ctx context.Context, f func(context.Context, *client
 
 		// Decide if the op can happen remotely
 		if project.RemoteEnabled {
-
+			// Check if VCS is configured on our project
+			remote, err := remoteIsPossible(ctx, client, project, c.Log)
+			if err != nil {
+				c.ui.Output(clierrors.Humanize(err), terminal.WithErrorStyle())
+				return ErrSentinel
+			}
+			c.project.LocalRunner = !remote
+			if remote {
+				c.ui.Output("Using remote runner")
+			} else {
+				c.ui.Output("Using local runner")
+			}
 		}
-		// Check if VCS is configured on our project
 
 		for _, a := range project.Applications {
 			appTargets = append(appTargets, a.Name)

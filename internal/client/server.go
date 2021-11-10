@@ -38,7 +38,7 @@ func (c *Project) initServerClient(ctx context.Context, cfg *config) (*grpc.Clie
 
 	// If we're local, then connection is optional.
 	opts := cfg.connectOpts
-	if c.local {
+	if c.LocalRunner {
 		log.Trace("WithLocal set, server credentials optional")
 		opts = append(opts, serverclient.Optional())
 	}
