@@ -12,7 +12,6 @@ export default class WorkspaceProjectsProjectAppDeployments extends Controller {
   ];
 
   @tracked isShowingDestroyed = false;
-  @tracked selectedIndex = 0;
 
   get hasMoreDeployments(): boolean {
     return this.model.filter((deployment: Deployment.AsObject) => deployment.state == 4).length > 0;

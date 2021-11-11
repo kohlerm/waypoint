@@ -53,8 +53,8 @@ aside {
 
 .grid {
   display: grid;
-  grid-gap: 2vw;
-  grid-template-columns: 20vw 73vw;
+  grid-gap: 36px;
+  grid-template-columns: 25vw 65vw;
   grid-template-areas: 'menu panel';
 }
 
@@ -66,11 +66,8 @@ ul {
 
 ul.sidebar {
   grid-area: menu;
+
   li {
-    padding-bottom: scale.$base;
-    border-top: 1rem solid transparent;
-    margin-bottom: 0;
-    border-bottom: 1px solid rgb(var(--border));
 
     &:last-child {
       border-bottom: none;

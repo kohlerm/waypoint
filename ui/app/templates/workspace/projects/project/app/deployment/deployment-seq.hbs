@@ -45,7 +45,7 @@
           {{#if deploymentResources.length}}
             <ResourcesTable
               @resources={{deploymentResources}}
-              @route="workspace.projects.project.app.deployment.resource"
+              @route="workspace.projects.project.app.deployment.deployment-seq.resource"
               @models={{array @model.sequence}}
               @withMargin={{true}}
             >

@@ -4,17 +4,24 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  width: 100%;
-  height: 70px;
-  padding-left: scale.$sm-2;
+
+  .active {
+    background-color: rgb(var(--highlighted-list-item));
+    border-radius: 5px;
+    border-bottom: 0px;
+  }
 
   a:not(.button) {
     display: flex;
     flex-direction: row;
+    align-items: flex-start;
     flex-grow: 1;
     color: inherit;
     text-decoration: none;
-    margin-right: scale.$base;
+    width: 100%;
+    height: 73px;
+    padding: scale.$sm-1 scale.$sm-2;
+    border-bottom: 1px solid rgb(var(--border));
 
     &:hover code {
       color: rgb(var(--link));

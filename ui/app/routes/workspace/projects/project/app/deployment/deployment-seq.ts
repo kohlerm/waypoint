@@ -1,7 +1,7 @@
 import Route from '@ember/routing/route';
 import { inject as service } from '@ember/service';
 import ApiService from 'waypoint/services/api';
-import { Model as AppRouteModel } from '../app';
+import { Model as AppRouteModel } from '../../app';
 import { Breadcrumb } from 'waypoint/services/breadcrumbs';
 import { DeploymentExtended, ReleaseExtended } from 'waypoint/services/api';
 
@@ -23,6 +23,11 @@ export default class DeploymentDetail extends Route {
         icon: 'git-repository',
         route: 'workspace.projects.project.app',
       },
+      {
+        label: 'Deployments',
+        icon: 'upload',
+        route: 'workspace.projects.project.app.deployment',
+      },
     ];
   }
 
@@ -37,7 +42,6 @@ export default class DeploymentDetail extends Route {
     let deploymentId = deployment.id;
     let { releases } = this.modelFor('workspace.projects.project.app') as AppRouteModel;
     let release = releases.find((r) => r.deploymentId === deploymentId);
-
     return { ...deployment, release };
   }
 }
