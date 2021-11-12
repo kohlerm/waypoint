@@ -55,6 +55,7 @@ Router.map(function () {
           });
           this.route('logs');
           this.route('exec');
+          this.route('deployments');
         });
         this.route('settings', function () {
           this.route('repository', { path: '/' });

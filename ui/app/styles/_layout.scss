@@ -67,11 +67,24 @@ ul {
 ul.sidebar {
   grid-area: menu;
 
-  li {
-
-    &:last-child {
-      border-bottom: none;
+  .active {
+    border-radius: 5px;
+    border-bottom: 0px;
+    @media (prefers-color-scheme: light) {
+      background-color: rgb(var(--highlighted-list-item));
     }
+  }
+
+  .badge {
+    @media (prefers-color-scheme: light) {
+      color: color.$ui-cool-gray-600;
+      background: color.$ui-cool-gray-100;
+    }
+  }
+
+  .operation-status-indicator {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

@@ -59,6 +59,10 @@
     align-items: center;
     color: rgb(var(--text-muted));
     margin-right: scale.$sm-2;
+
+    .timestamp__label {
+      @include Typography.Interface(S);
+    }
   }
 
   .button {

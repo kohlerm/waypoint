@@ -22,6 +22,6 @@ export default class DeploymentIdDetail extends Route {
   }
 
   redirect(model: Model): void {
-    this.transitionTo('workspace.projects.project.app.deployment-seq', model.sequence);
+    this.transitionTo('workspace.projects.project.app.deployment.deployment-seq', model.sequence);
   }
 }

@@ -26,7 +26,7 @@ export default class DeploymentDetail extends Route {
       {
         label: 'Deployments',
         icon: 'upload',
-        route: 'workspace.projects.project.app.deployment',
+        route: 'workspace.projects.project.app.deployments',
       },
     ];
   }

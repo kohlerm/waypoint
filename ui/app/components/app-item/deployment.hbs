@@ -7,15 +7,16 @@
     <p>
       <b class="badge badge--version">v{{@deployment.sequence}}</b>
     </p>
-    <small class="app-item__meta__secondary">
+    <span class="app-item__meta__secondary">
       <OperationStatusIndicator::Deployment @operation={{@deployment}} />
-    </small>
+    </span>
     {{#if (eq @deployment.state 4)}}
       <b data-test-destroyed-badge class="badge badge--destroyed">
         <Pds::Icon @type="trash" class="icon" />&nbsp; {{t "page.deployments.destroyed_label"}}
       </b>
     {{/if}}
   </LinkTo>
+  <hr>
   {{#if (not-eq @latest.id @deployment.id)}}
   <small class="replacement-info">
     {{t "page.deployments.replaced_label"}}<b class="badge badge--version">v{{@latest.sequence}}</b>
